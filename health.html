@@ -1035,6 +1035,12 @@ main {
     render();
   }, 60 * 1000);
 
+  // Re-render whenever cloud sync applies remote data (onApplied dispatches 'storage')
+  window.addEventListener('storage', () => {
+    todayKey = `stack:taken:${getActiveDate()}`;
+    render();
+  });
+
   render();
   startTicker();
 })();

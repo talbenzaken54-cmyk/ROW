@@ -1090,6 +1090,12 @@ html, body {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  // Re-render whenever cloud sync applies remote data (onApplied dispatches 'storage')
+  window.addEventListener('storage', () => {
+    state = loadState();
+    renderAll();
+  });
+
   // BOOT
   renderAll();
 })();

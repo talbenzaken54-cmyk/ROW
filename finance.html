@@ -3375,6 +3375,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   safeRenderTicker();
   setInterval(safeRenderTicker, 1500);
 
+  // Re-render whenever cloud sync applies remote data (onApplied dispatches 'storage')
+  window.addEventListener('storage', () => {
+    renderAllNetWorth();
+    renderSubs();
+    renderOrders();
+    renderWishlist();
+  });
+
 })();
 </script>
 <script>
