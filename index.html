@@ -63,8 +63,15 @@ body::after {
 
 .page { max-width: 1100px; margin: 0 auto; }
 
+/* ===== Page header ===== */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
 .dash-title {
-  margin: 0 0 20px;
+  margin: 0;
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -74,6 +81,28 @@ body::after {
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
+@media (max-width: 480px) { .dash-title { font-size: 22px; } }
+
+/* ===== Gear button ===== */
+.gear-btn {
+  width: 42px; height: 42px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.gear-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.gear-icon { transition: transform 0.35s ease; }
+.gear-btn:active .gear-icon { transform: rotate(28deg); }
 
 /* ===== Bento grid ===== */
 .bento-grid {
@@ -83,7 +112,6 @@ body::after {
   grid-auto-flow: dense;
   gap: 14px;
 }
-
 .bento-tile {
   display: flex;
   flex-direction: column;
@@ -107,61 +135,29 @@ body::after {
 }
 .bento-tile.big  { grid-column: span 2; grid-row: span 2; }
 .bento-tile.wide { grid-column: span 2; }
-
-/* tile inner layout */
-.tile-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
+.tile-top { display: flex; justify-content: space-between; align-items: flex-start; }
 .tile-num {
   font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
   color: var(--text-tertiary);
 }
-.tile-emoji {
-  font-size: 28px;
-  line-height: 1;
-  filter: drop-shadow(0 0 10px var(--accent));
-}
+.tile-emoji { font-size: 28px; line-height: 1; filter: drop-shadow(0 0 10px var(--accent)); }
 .bento-tile.big .tile-emoji { font-size: 44px; }
-
 .tile-spacer { flex: 1; }
-
 .tile-title {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: var(--text-primary);
-  margin-bottom: 6px;
+  font-size: 17px; font-weight: 700; letter-spacing: -0.015em;
+  color: var(--text-primary); margin-bottom: 6px;
 }
 .bento-tile.big .tile-title { font-size: 24px; margin-bottom: 8px; }
-
-.tile-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.tile-footer { display: flex; justify-content: space-between; align-items: center; }
 .tile-sub {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  letter-spacing: 0.01em;
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 11px; font-weight: 500; color: var(--text-tertiary);
+  letter-spacing: 0.01em; flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tile-arrow {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--accent);
-  flex-shrink: 0;
-  transition: transform 0.18s ease;
-  margin-left: 8px;
+  font-size: 16px; font-weight: 700; color: var(--accent);
+  flex-shrink: 0; transition: transform 0.18s ease; margin-left: 8px;
 }
 .bento-tile:hover .tile-arrow { transform: translateX(4px); }
 
@@ -178,18 +174,168 @@ body::after {
   .bento-tile.big .tile-emoji { font-size: 28px; }
   .bento-tile.big .tile-title { font-size: 17px; margin-bottom: 6px; }
 }
-@media (max-width: 480px) {
-  .dash-title { font-size: 22px; }
+
+/* ===== Settings modal ===== */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.22s ease;
 }
+.modal-bg.show { opacity: 1; pointer-events: all; }
+
+.modal {
+  width: 100%; max-width: 420px;
+  background: rgba(18, 18, 22, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  padding: 24px;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.75);
+  transform: scale(0.96) translateY(10px);
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.modal-bg.show .modal { transform: scale(1) translateY(0); }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.modal-title {
+  font-size: 17px; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.modal-close {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: none; border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 20px; line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, color 0.15s;
+}
+.modal-close:hover { background: rgba(255, 255, 255, 0.13); color: var(--text-primary); }
+
+/* Settings field rows */
+.sf-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 13px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+.sf-row:last-of-type { border-bottom: none; padding-bottom: 4px; }
+.sf-label {
+  font-size: 14px; font-weight: 500;
+  color: var(--text-secondary); flex-shrink: 0;
+}
+.sf-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* Number inputs */
+.sf-input {
+  width: 68px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px; text-align: right;
+  -moz-appearance: textfield;
+  transition: border-color 0.15s;
+}
+.sf-input::-webkit-outer-spin-button,
+.sf-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.sf-input:focus { outline: none; border-color: rgba(255, 255, 255, 0.28); }
+.sf-input-sm  { width: 54px; }
+.sf-input-ft  { width: 46px; }
+.sf-input-in  { width: 46px; }
+
+/* ft/in pair */
+.ftin-pair { display: flex; align-items: center; gap: 4px; }
+.ftin-lbl { font-size: 11px; color: var(--text-tertiary); font-weight: 600; }
+
+/* Segmented toggle */
+.seg-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px; padding: 3px; gap: 2px;
+}
+.seg-btn {
+  padding: 5px 11px;
+  border: none; border-radius: 5px;
+  background: transparent;
+  font-family: var(--font);
+  font-size: 12px; font-weight: 600;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.14s, color 0.14s;
+  white-space: nowrap;
+}
+.seg-btn.active {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text-primary);
+}
+
+/* Save button + confirm */
+.save-btn {
+  display: block; width: 100%;
+  margin-top: 22px; padding: 13px;
+  background: rgba(107, 227, 164, 0.13);
+  border: 1px solid rgba(107, 227, 164, 0.28);
+  border-radius: 12px;
+  color: #6BE3A4;
+  font-family: var(--font); font-size: 15px; font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s, transform 0.10s;
+}
+.save-btn:hover { background: rgba(107, 227, 164, 0.22); border-color: rgba(107, 227, 164, 0.42); }
+.save-btn:active { transform: scale(0.98); }
+.save-confirm {
+  display: block; text-align: center;
+  margin-top: 10px; height: 18px;
+  font-size: 13px; font-weight: 600;
+  color: #6BE3A4;
+  opacity: 0; transition: opacity 0.28s ease;
+}
+.save-confirm.visible { opacity: 1; }
 </style>
 </head>
 <body>
 <div class="page">
-  <h1 class="dash-title">Dashboard</h1>
 
+  <!-- Header row -->
+  <div class="page-header">
+    <h1 class="dash-title">Dashboard</h1>
+    <button class="gear-btn" id="gearBtn" type="button" aria-label="Settings">
+      <svg class="gear-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06
+                 a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09
+                 A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83
+                 l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+                 A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83
+                 l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09
+                 a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83
+                 l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
+                 a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Bento grid -->
   <div class="bento-grid">
 
-    <!-- ·01 Main — big tile -->
     <a href="main.html" class="bento-tile big" style="--accent: #6BE3A4">
       <div class="tile-top">
         <span class="tile-num">·01</span>
@@ -203,7 +349,6 @@ body::after {
       </div>
     </a>
 
-    <!-- ·02 Fitness — wide tile -->
     <a href="gym.html" class="bento-tile wide" style="--accent: #7DD3FC">
       <div class="tile-top">
         <span class="tile-num">·02</span>
@@ -217,7 +362,6 @@ body::after {
       </div>
     </a>
 
-    <!-- ·03 Health — small tile -->
     <a href="health.html" class="bento-tile" style="--accent: #A7F3D0">
       <div class="tile-top">
         <span class="tile-num">·03</span>
@@ -231,7 +375,6 @@ body::after {
       </div>
     </a>
 
-    <!-- ·04 Water — small tile -->
     <a href="po-water.html" class="bento-tile" style="--accent: #60A5FA">
       <div class="tile-top">
         <span class="tile-num">·04</span>
@@ -245,7 +388,6 @@ body::after {
       </div>
     </a>
 
-    <!-- ·05 Finance — wide tile -->
     <a href="finance.html" class="bento-tile wide" style="--accent: #F2C063">
       <div class="tile-top">
         <span class="tile-num">·05</span>
@@ -260,6 +402,255 @@ body::after {
     </a>
 
   </div>
+
+  <!-- Settings modal -->
+  <div class="modal-bg" id="settingsBg" role="dialog" aria-modal="true" aria-label="Your Data">
+    <div class="modal" id="settingsModal">
+
+      <div class="modal-header">
+        <span class="modal-title">Your Data</span>
+        <button class="modal-close" id="settingsClose" type="button" aria-label="Close">×</button>
+      </div>
+
+      <!-- Height -->
+      <div class="sf-row">
+        <span class="sf-label">Height</span>
+        <div class="sf-right">
+          <div id="heightInputs"></div>
+          <div class="seg-toggle" id="heightUnitToggle">
+            <button type="button" class="seg-btn" data-val="cm">cm</button>
+            <button type="button" class="seg-btn" data-val="ftin">ft/in</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weight -->
+      <div class="sf-row">
+        <span class="sf-label">Weight</span>
+        <div class="sf-right">
+          <input type="number" class="sf-input" id="weightVal" min="1" max="600" step="0.1">
+          <div class="seg-toggle" id="weightUnitToggle">
+            <button type="button" class="seg-btn" data-val="kg">kg</button>
+            <button type="button" class="seg-btn" data-val="lb">lb</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Age -->
+      <div class="sf-row">
+        <span class="sf-label">Age</span>
+        <div class="sf-right">
+          <input type="number" class="sf-input sf-input-sm" id="ageVal" min="10" max="120" step="1">
+        </div>
+      </div>
+
+      <!-- Sex -->
+      <div class="sf-row">
+        <span class="sf-label">Sex</span>
+        <div class="sf-right">
+          <div class="seg-toggle" id="sexToggle">
+            <button type="button" class="seg-btn" data-val="m">Male</button>
+            <button type="button" class="seg-btn" data-val="f">Female</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active hours -->
+      <div class="sf-row">
+        <span class="sf-label">Active hrs / week</span>
+        <div class="sf-right">
+          <input type="number" class="sf-input sf-input-sm" id="activeHrsVal" min="0" max="168" step="0.5">
+        </div>
+      </div>
+
+      <button class="save-btn" id="saveBtn" type="button">Save</button>
+      <span class="save-confirm" id="saveConfirm">Saved ✓</span>
+
+    </div>
+  </div>
+
 </div>
+<script>
+(function () {
+  function defaultState() {
+    return {
+      unit: 'bottle', bottleMl: 500, glassMl: 250, weightUnit: 'kg',
+      profile: { weightKg: 75, age: 25, sex: 'm', activityHrsPerWeek: 5, heightCm: 175, heightUnit: 'cm' },
+      caffeineMgPerDay: 200, substances: [], logs: {}
+    };
+  }
+  function loadState() {
+    try { var s = JSON.parse(localStorage.getItem('po_water_v1')); return s || defaultState(); } catch (e) { return defaultState(); }
+  }
+  function saveToStorage(s) {
+    try { localStorage.setItem('po_water_v1', JSON.stringify(s)); } catch (e) {}
+  }
+
+  var bg         = document.getElementById('settingsBg');
+  var gearBtn    = document.getElementById('gearBtn');
+  var closeBtn   = document.getElementById('settingsClose');
+  var saveBtn    = document.getElementById('saveBtn');
+  var saveConfirm = document.getElementById('saveConfirm');
+  var confirmTimer = null;
+
+  // ---- Open / Close ----
+  function openModal() {
+    prefill();
+    bg.classList.add('show');
+    document.body.classList.add('topbar-modal-open');
+  }
+  function closeModal() {
+    bg.classList.remove('show');
+    document.body.classList.remove('topbar-modal-open');
+  }
+  gearBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  bg.addEventListener('click', function (e) { if (e.target === bg) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+  // ---- Height ----
+  var heightInputsEl   = document.getElementById('heightInputs');
+  var heightUnitToggle = document.getElementById('heightUnitToggle');
+  var heightUnit = 'cm';
+
+  function renderHeightInputs() {
+    if (heightUnit === 'cm') {
+      heightInputsEl.innerHTML =
+        '<input type="number" class="sf-input" id="heightCmVal" min="50" max="280" step="1">';
+    } else {
+      heightInputsEl.innerHTML =
+        '<div class="ftin-pair">' +
+          '<input type="number" class="sf-input sf-input-ft" id="heightFtVal" min="1" max="9" step="1">' +
+          '<span class="ftin-lbl">ft</span>' +
+          '<input type="number" class="sf-input sf-input-in" id="heightInVal" min="0" max="11" step="1">' +
+          '<span class="ftin-lbl">in</span>' +
+        '</div>';
+    }
+  }
+
+  function readHeightCm() {
+    if (heightUnit === 'cm') {
+      return parseFloat(document.getElementById('heightCmVal').value) || 175;
+    }
+    var ft  = parseFloat(document.getElementById('heightFtVal').value) || 0;
+    var ins = parseFloat(document.getElementById('heightInVal').value) || 0;
+    return Math.round((ft * 30.48 + ins * 2.54) * 10) / 10;
+  }
+
+  function writeHeightInputs(cm) {
+    if (heightUnit === 'cm') {
+      document.getElementById('heightCmVal').value = Math.round(cm);
+    } else {
+      var totalIn = cm / 2.54;
+      document.getElementById('heightFtVal').value = Math.floor(totalIn / 12);
+      document.getElementById('heightInVal').value = Math.round(totalIn % 12);
+    }
+  }
+
+  function setActiveBtn(toggle, val) {
+    toggle.querySelectorAll('.seg-btn').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.val === val);
+    });
+  }
+
+  heightUnitToggle.querySelectorAll('.seg-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var prevCm = readHeightCm();
+      heightUnit = btn.dataset.val;
+      setActiveBtn(heightUnitToggle, heightUnit);
+      renderHeightInputs();
+      writeHeightInputs(prevCm);
+    });
+  });
+
+  // ---- Weight ----
+  var weightUnitToggle = document.getElementById('weightUnitToggle');
+  var weightUnit = 'kg';
+
+  function readWeightKg() {
+    var v = parseFloat(document.getElementById('weightVal').value) || 75;
+    return weightUnit === 'lb' ? v / 2.20462 : v;
+  }
+
+  weightUnitToggle.querySelectorAll('.seg-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var kg = readWeightKg();
+      weightUnit = btn.dataset.val;
+      setActiveBtn(weightUnitToggle, weightUnit);
+      var wEl = document.getElementById('weightVal');
+      wEl.value = weightUnit === 'lb'
+        ? Math.round(kg * 2.20462 * 10) / 10
+        : Math.round(kg * 10) / 10;
+    });
+  });
+
+  // ---- Sex ----
+  var sexToggleEl = document.getElementById('sexToggle');
+  var sexVal = 'm';
+  sexToggleEl.querySelectorAll('.seg-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      sexVal = btn.dataset.val;
+      setActiveBtn(sexToggleEl, sexVal);
+    });
+  });
+
+  // ---- Prefill on open ----
+  function prefill() {
+    var s = loadState();
+    var p = s.profile || {};
+
+    // Height
+    heightUnit = p.heightUnit || 'cm';
+    setActiveBtn(heightUnitToggle, heightUnit);
+    renderHeightInputs();
+    writeHeightInputs(p.heightCm || 175);
+
+    // Weight
+    weightUnit = s.weightUnit || 'kg';
+    setActiveBtn(weightUnitToggle, weightUnit);
+    var kg = p.weightKg || 75;
+    document.getElementById('weightVal').value = weightUnit === 'lb'
+      ? Math.round(kg * 2.20462 * 10) / 10
+      : Math.round(kg * 10) / 10;
+
+    // Age
+    document.getElementById('ageVal').value = p.age != null ? p.age : '';
+
+    // Sex
+    sexVal = p.sex || 'm';
+    setActiveBtn(sexToggleEl, sexVal);
+
+    // Active hrs
+    document.getElementById('activeHrsVal').value = p.activityHrsPerWeek != null ? p.activityHrsPerWeek : '';
+  }
+
+  // ---- Save ----
+  saveBtn.addEventListener('click', function () {
+    var s = loadState();           // fresh load — preserves logs & all other fields
+    if (!s.profile) s.profile = {};
+
+    s.profile.heightCm   = readHeightCm();
+    s.profile.heightUnit = heightUnit;
+
+    var kg = readWeightKg();
+    s.profile.weightKg = Math.round(kg * 100) / 100;
+    s.weightUnit = weightUnit;
+
+    var age = parseInt(document.getElementById('ageVal').value, 10);
+    if (!isNaN(age)) s.profile.age = age;
+
+    s.profile.sex = sexVal;
+
+    var hrs = parseFloat(document.getElementById('activeHrsVal').value);
+    if (!isNaN(hrs)) s.profile.activityHrsPerWeek = hrs;
+
+    saveToStorage(s);
+
+    clearTimeout(confirmTimer);
+    saveConfirm.classList.add('visible');
+    confirmTimer = setTimeout(function () { saveConfirm.classList.remove('visible'); }, 1800);
+  });
+})();
+</script>
 </body>
 </html>
