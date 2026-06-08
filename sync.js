@@ -145,7 +145,9 @@
     window.addEventListener('pagehide', flushOnUnload);
     window.addEventListener('storage', (e) => { if (e.key && matches(e.key)) schedulePush(); });
     window.addEventListener('focus', pullNow);
+    // pageshow fires when iOS restores a page from bfcache — DOMContentLoaded does NOT re-fire
+    window.addEventListener('pageshow', (e) => { if (e.persisted) pullNow(); });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) pullNow(); });
-    setInterval(pullNow, 30 * 1000);
+    setInterval(pullNow, 15 * 1000);
   };
 })();

@@ -1062,6 +1062,9 @@ function onApplied() {
   rerender();
 }
 
+// Re-render whenever another tab or sync applies data to localStorage
+window.addEventListener('storage', function() { invalidateCurve(); rerender(); });
+
 window.addEventListener('DOMContentLoaded', function() {
   renderDrinkGrid('');
   rerender();

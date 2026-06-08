@@ -3499,14 +3499,28 @@ img, video, canvas, svg { max-width: 100%; }
       .subscribe();
   })();
 
+  async function pcPullNow() {
+    if (!pcSupa) return;
+    try {
+      const { data, error } = await pcSupa.from('app_state').select('data').eq('key', APP_KEY).maybeSingle();
+      if (!error && data && data.data && Object.keys(data.data).length > 0) {
+        const incoming = JSON.stringify(data.data);
+        if (incoming !== pcLastSyncedJson) { pcLastSyncedJson = incoming; pcMaybeApplyRemote(data.data); }
+      }
+    } catch (_) {}
+  }
+
   document.addEventListener('focusout', () => {
     setTimeout(pcApplyPendingIfReady, 0);
   }, true);
   window.addEventListener('pagehide', pcFlushPushOnUnload);
   window.addEventListener('beforeunload', pcFlushPushOnUnload);
+  window.addEventListener('focus', pcPullNow);
+  window.addEventListener('pageshow', (e) => { if (e.persisted) pcPullNow(); });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) pcFlushPushOnUnload();
+    if (document.hidden) pcFlushPushOnUnload(); else pcPullNow();
   });
+  setInterval(pcPullNow, 15 * 1000);
 })();
 </script>
 
