@@ -434,8 +434,6 @@ body::after {
       </button>
     </div>
     <div id="todayView"></div>
-    <div class="section-title">Manage Habits</div>
-    <div id="manageSection"></div>
   </div>
 
   <!-- ====================================================== -->
@@ -652,7 +650,7 @@ function rerender() {
 /* ================================================================
    RENDER: MAIN
 ================================================================ */
-function renderMain() { renderToday(); renderManage(); }
+function renderMain() { renderToday(); }
 
 function renderToday() {
   var habits = getHabits();
@@ -720,21 +718,6 @@ function renderToday() {
     +buildGroup(habits.filter(function(h){return h.type==='bad';}),  'Avoid Today', '#FF6B6B');
 }
 
-function renderManage() {
-  var habits = getHabits();
-  var el = document.getElementById('manageSection');
-  if (!habits.length) { el.innerHTML='<div style="color:var(--text-tertiary);font-size:13px;padding:0 4px 16px">No habits yet.</div>'; return; }
-  el.innerHTML = habits.map(function(h){
-    var color = habitColor(h);
-    return '<div class="manage-row">'
-      +'<span class="mr-emoji">'+(h.emoji||'●')+'</span>'
-      +'<div class="mr-body"><div class="mr-name">'+esc(h.name)+'</div>'
-      +'<span class="mr-badge '+h.type+'">'+(h.type==='good'?'DO':'AVOID')+'</span></div>'
-      +'<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0"></div>'
-      +'<button class="mr-del" data-del="'+h.id+'" aria-label="Delete">×</button>'
-      +'</div>';
-  }).join('');
-}
 
 /* ================================================================
    RENDER: DETAIL
@@ -854,11 +837,10 @@ function buildDetailMonth(h) {
     var isT   = ds === td;
     var isFut = ds > td;
     var done  = !isFut && !!(logs[ds] && logs[ds][h.id]);
-    var bg    = done ? 'background:'+color+'22;' : '';
+    var bg    = done ? 'background:'+color+'38;border-color:'+color+'70;' : '';
     var cls   = 'month-cell'+(isT?' mc-today':'')+(done?' mc-done':'')+(isFut?' mc-future':'');
-    cells += '<div class="'+cls+'" style="'+bg+(done?'border-color:'+color+'55;':'')+'">'
+    cells += '<div class="'+cls+'" style="'+bg+'">'
       +'<div class="mc-day">'+day+'</div>'
-      +(done ? '<div class="mc-dot-row"><div class="mc-dot" style="background:'+color+'"></div></div>' : '')
       +'</div>';
   }
 
@@ -879,37 +861,66 @@ function buildDetailYear(h) {
   var color = habitColor(h);
   var today = new Date(); var td = todayStr();
 
-  var start = new Date(today);
-  start.setDate(start.getDate() - 364);
-  start.setDate(start.getDate() - start.getDay()); // back to Sunday
-
   var CELL=11, GAP=2, STEP=CELL+GAP, LABEL_H=18;
-  var parts = []; var monthLabels = {}; var lastMonth = -1;
 
-  for (var week = 0; week < 53; week++) {
+  // Full calendar year: Jan 1 → Dec 31 of calYear
+  var jan1  = new Date(calYear, 0, 1);
+  var dec31 = new Date(calYear, 11, 31);
+
+  // Grid starts on the Sunday on or before Jan 1
+  var start = new Date(jan1);
+  start.setDate(start.getDate() - start.getDay());
+
+  // Number of weeks needed to cover through Dec 31
+  var numWeeks = Math.ceil(((dec31 - start) / 86400000 + 1) / 7);
+
+  var parts = [];
+  var labelsSeen = {};
+
+  for (var week = 0; week < numWeeks; week++) {
+    var x = week * STEP;
+
+    // Month label: first day in this column that belongs to calYear
+    for (var scan = 0; scan < 7; scan++) {
+      var scanD = new Date(start);
+      scanD.setDate(start.getDate() + week * 7 + scan);
+      if (scanD.getFullYear() === calYear) {
+        var m = scanD.getMonth();
+        if (!labelsSeen[m]) {
+          labelsSeen[m] = true;
+          parts.push('<text x="'+x+'" y="'+(LABEL_H-4)+'" fill="rgba(255,255,255,0.28)" font-size="9" font-family="monospace">'+MONTH_SHORT[m]+'</text>');
+        }
+        break;
+      }
+    }
+
     for (var dow = 0; dow < 7; dow++) {
-      var d = new Date(start.getTime());
-      d.setDate(d.getDate() + week*7 + dow);
-      if (d > today) continue;
-      var ds = dateStr(d);
-      var done = !!(logs[ds] && logs[ds][h.id]);
-      var col  = done ? color : 'rgba(255,255,255,0.05)';
-      var x = week*STEP, y = dow*STEP+LABEL_H;
-      var m = d.getMonth();
-      if (m !== lastMonth && week > 0) { monthLabels[x] = MONTH_SHORT[m]; lastMonth = m; }
-      else if (week===0) lastMonth = m;
+      var d = new Date(start);
+      d.setDate(start.getDate() + week * 7 + dow);
+      var inYear = d.getFullYear() === calYear;
+      if (!inYear) continue; // skip padding days outside calYear
+
+      var ds  = dateStr(d);
+      var y   = dow * STEP + LABEL_H;
+      var isFut = ds > td;
+      var done  = !isFut && !!(logs[ds] && logs[ds][h.id]);
+      var col   = isFut ? 'rgba(255,255,255,0.04)' : (done ? color : 'rgba(255,255,255,0.05)');
+
       parts.push('<rect x="'+x+'" y="'+y+'" width="'+CELL+'" height="'+CELL+'" rx="2" fill="'+col+'"><title>'+ds+(done?' ✓':'')+' </title></rect>');
     }
   }
-  Object.keys(monthLabels).forEach(function(x){
-    parts.push('<text x="'+x+'" y="'+(LABEL_H-4)+'" fill="rgba(255,255,255,0.28)" font-size="9" font-family="monospace">'+monthLabels[x]+'</text>');
-  });
+
   [[0,'Su'],[2,'Tu'],[4,'Th'],[6,'Sa']].forEach(function(p){
     parts.push('<text x="-2" y="'+(p[0]*STEP+LABEL_H+CELL-1)+'" text-anchor="end" fill="rgba(255,255,255,0.2)" font-size="8" font-family="monospace">'+p[1]+'</text>');
   });
 
-  var W = 53*STEP+2, H = 7*STEP+LABEL_H+4;
+  var W = numWeeks * STEP + 2, H = 7 * STEP + LABEL_H + 4;
   return '<div class="gm-card">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    +'<button class="mnav-btn" id="prevYear">‹</button>'
+    +'<div style="font-size:15px;font-weight:700;color:var(--text-primary)">'+calYear+'</div>'
+    +'<button class="mnav-btn" id="nextYear">›</button>'
+    +'</div>'
     +'<div class="year-scroll">'
     +'<svg viewBox="-24 0 '+(W+24)+' '+H+'" width="'+(W+24)+'" height="'+H+'" style="display:block;min-width:'+(W+24)+'px">'+parts.join('')+'</svg>'
     +'</div>'
@@ -1002,6 +1013,8 @@ document.addEventListener('click', function(e) {
     if (calMonth===11){calMonth=0;calYear++;}else calMonth++;
     renderDetail(); return;
   }
+  if (e.target.id === 'prevYear') { calYear--; renderDetail(); return; }
+  if (e.target.id === 'nextYear') { calYear++; renderDetail(); return; }
 
   // Week day dot click in detail
   var dot = e.target.closest('.dwg-dot[data-id]');
