@@ -132,9 +132,8 @@ body::after {
 .progress-ring { transform: rotate(-90deg); }
 .progress-ring-track { stroke: rgba(255,255,255,.08); }
 .progress-ring-fill  {
+  /* stroke and stroke-dashoffset are set via inline style so they override this class */
   stroke: var(--purple); stroke-linecap: round;
-  stroke-dasharray: 138.2; stroke-dashoffset: 138.2;
-  transition: stroke-dashoffset .5s ease;
 }
 
 .group-label {
@@ -207,6 +206,8 @@ body::after {
 .wt-streak { padding: 3px 6px; font-size: 11px; font-weight: 700; color: var(--warning); white-space: nowrap; }
 .wt-sep td { padding: 0; height: 1px; }
 .wt-sep-line { height: 1px; background: rgba(255,255,255,.05); margin: 4px 0; }
+.wt-future { cursor: default; }
+.wt-dim    { opacity: 0.22; pointer-events: none; }
 
 /* ============================================================
    MONTH VIEW
@@ -597,7 +598,7 @@ function renderToday() {
     + '<svg class="progress-ring" width="56" height="56" viewBox="0 0 56 56">'
     + '<circle class="progress-ring-track" cx="28" cy="28" r="22" fill="none" stroke-width="5"/>'
     + '<circle class="progress-ring-fill" cx="28" cy="28" r="22" fill="none" stroke-width="5"'
-    + ' stroke="'+ringColor+'" stroke-dasharray="'+circumference+'" stroke-dashoffset="'+dashOffset+'" stroke-linecap="round"/>'
+    + ' stroke-linecap="round" style="stroke:'+ringColor+';stroke-dasharray:'+circumference+';stroke-dashoffset:'+dashOffset+'"/>'
     + '</svg>'
     + (best > 0 ? '<div class="ts-right">🔥 '+best+'d best streak</div>' : '')
     + '</div>'
@@ -613,11 +614,15 @@ function renderWeek() {
   var el = document.getElementById('viewWeek');
   var td = todayStr();
 
-  // Last 7 days: index 0 = 6 days ago, index 6 = today
+  // Current week: Monday → Sunday
+  var today = new Date();
+  var daysFromMon = (today.getDay() + 6) % 7; // Mon=0 … Sun=6
+  var monday = new Date(today);
+  monday.setDate(today.getDate() - daysFromMon);
   var days = [];
-  for (var i = 6; i >= 0; i--) {
-    var d = new Date();
-    d.setDate(d.getDate() - i);
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(monday);
+    d.setDate(monday.getDate() + i);
     days.push(d);
   }
 
@@ -636,12 +641,14 @@ function renderWeek() {
     return list.map(function(h) {
       var color = habitColor(h);
       var cells = days.map(function(d) {
-        var ds   = dateStr(d);
-        var done = isChecked(h.id, ds);
-        var isT  = ds === td;
+        var ds    = dateStr(d);
+        var isFut = ds > td;
+        var done  = !isFut && isChecked(h.id, ds);
+        var isT   = ds === td;
         var dotStyle = done ? 'background:'+color+';border-color:'+color+';' : '';
-        return '<td class="wt-cell" data-id="'+h.id+'" data-ds="'+ds+'">'
-          + '<div class="wt-dot'+(done?' done':'')+(isT?' is-today':'')+'" style="'+dotStyle+'">'
+        var tdAttr = isFut ? '' : ' data-id="'+h.id+'" data-ds="'+ds+'"';
+        return '<td class="wt-cell'+(isFut?' wt-future':'')+'"'+tdAttr+'>'
+          + '<div class="wt-dot'+(done?' done':'')+(isT?' is-today':'')+(isFut?' wt-dim':'')+'" style="'+dotStyle+'">'
           + (done ? '<span style="color:rgba(0,0,0,.7)">✓</span>' : '')
           + '</div></td>';
       }).join('');
