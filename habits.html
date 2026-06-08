@@ -813,8 +813,6 @@ function buildDetailWeek(h) {
       +'</div>';
   }).join('');
 
-  var done7 = days.filter(function(d){ return !d>new Date() && isChecked(h.id,dateStr(d)); }).length;
-
   return '<div class="gm-card">'
     +'<div class="det-week">'+cols+'</div>'
     +'</div>';
@@ -1032,14 +1030,6 @@ document.addEventListener('click', function(e) {
   // Habit row → open detail
   var habRow = e.target.closest('[data-detail]');
   if (habRow && habRow.dataset.detail) { showDetail(habRow.dataset.detail); return; }
-
-  // Delete from manage section
-  var delBtn = e.target.closest('[data-del]');
-  if (delBtn) {
-    if (!confirm('Delete this habit and all its history?')) return;
-    saveHabits(getHabits().filter(function(h){ return h.id!==delBtn.dataset.del; }));
-    rerender(); return;
-  }
 
   // Delete from detail view
   var detDelBtn = e.target.closest('[data-detail-del]');

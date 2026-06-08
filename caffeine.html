@@ -495,7 +495,8 @@ function saveCustom(a){ localStorage.setItem(CUSTOM_KEY, JSON.stringify(a)); }
 
 function getTodayLogs() {
   var td = todayStr();
-  return getLogs().filter(function(l) { return l.time && l.time.startsWith(td); });
+  // Use explicit local date if present (new logs); fall back to UTC ISO prefix for old logs
+  return getLogs().filter(function(l) { return l.date ? l.date === td : l.time && l.time.startsWith(td); });
 }
 
 function getProfile() {
@@ -960,7 +961,7 @@ drinkGridEl.addEventListener('click', function(e) {
 ================================================================ */
 function logDrink(name, mg, emoji) {
   var logs = getLogs();
-  var entry = { id: Date.now()+'', name: name, mg: mg, emoji: emoji||'☕', time: new Date().toISOString() };
+  var entry = { id: Date.now()+'', name: name, mg: mg, emoji: emoji||'☕', time: new Date().toISOString(), date: todayStr() };
   logs.push(entry);
   saveLogs(logs);
   invalidateCurve();
